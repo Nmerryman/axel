@@ -1,3 +1,5 @@
 .idea
 *__pycache__*
 *.env
+# all data info will be generated on first run, test data will be stored elsewhere
+Src/Client/data
