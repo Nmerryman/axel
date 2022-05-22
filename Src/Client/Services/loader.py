@@ -1,5 +1,7 @@
 import os
+from typing import Union
 from pathlib import Path
+from .data_structures import FileToken
 import json
 
 
@@ -40,12 +42,22 @@ def get_anchor():
 
 
 # may not even want these helpers because they do so little
-def store_user_str(string, location):
+def store_user_str(string: str, location: Union[str, Path]):
     (DATA_PATH / "user" / location).write_text(string)
 
 
-def load_user_str(string, location):
-    (DATA_PATH / "user" / location).read_text(string)
+def load_user_str(location: Union[str, Path]) -> str:
+    return (DATA_PATH / "user" / location).read_text()
+
+
+def store_file_tokens(data: list[FileToken]):
+    prep = [a.dumps() for a in data]
+    store_user_str(json.dumps(prep), "tokens")
+
+
+def load_file_tokens() -> list[FileToken]:
+    data = load_user_str("tokens")
+    return [FileToken(a) for a in data]
 
 
 
