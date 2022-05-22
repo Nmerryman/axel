@@ -1,4 +1,4 @@
-from .data_structures import FileToken
+from data_structures import FileToken
 from faker import Faker
 
 
