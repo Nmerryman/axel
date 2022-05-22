@@ -10,4 +10,6 @@ def import_file(path: Path):
     abs_loc = (Path(sys.path[0]) / ".." / "Src" / "Client" / "Services").resolve()
     name = path.stem
     sys.path.insert(1, abs_loc.__str__())
+    print(name.__str__())
+    print(abs_loc.__str__())
     return __import__(name.__str__())

@@ -1,5 +1,6 @@
 import Services.loader as loader
 from Services.data_structures import FileToken
+from Services.gen_dev_data import *
 import os
 
 anchor = loader.get_anchor()
@@ -9,5 +10,9 @@ if anchor == "DEV":
     loader.DATA_PATH = Path("dev_data")
     loader.get_anchor()
 
-
+loader.store_file_tokens([file_token_default()])
+l = loader.load_file_tokens()
+t = file_token_default()
+t.file_name = "e"
+print(t == l[0])
 
