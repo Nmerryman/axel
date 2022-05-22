@@ -25,3 +25,4 @@ There is a single client which can run multiple services which it uses to partic
   - Holds all the different modules I may care about
   - Some actually run their own services, others just support
     - Consider moving the libs to their own directory
+  - Nothing here is supposed to be run directly
