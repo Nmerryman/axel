@@ -56,7 +56,7 @@ def store_file_tokens(data: list[FileToken]):
 
 
 def load_file_tokens() -> list[FileToken]:
-    data = load_user_str("tokens")
+    data = json.loads(load_user_str("tokens"))
     return [FileToken(a) for a in data]
 
 
