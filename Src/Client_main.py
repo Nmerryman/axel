@@ -1,6 +1,6 @@
-import Services.loader as loader
-from Services.data_structures import FileToken
-from Services.gen_dev_data import *
+import services.loader as loader
+from services.data_structures import FileToken
+from services.gen_dev_data import *
 import os
 
 anchor = loader.get_anchor()

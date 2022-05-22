@@ -1,8 +1,9 @@
 from pathlib import Path
-import import_wanted
+# import import_wanted
 import json
+import Src.services.data_structures as ds
 
-ds = import_wanted.import_file(Path("data_structures.py"))
+# ds = import_wanted.import_file(Path("data_structures.py"))
 
 
 def test_FileToken():

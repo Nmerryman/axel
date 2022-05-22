@@ -1,7 +1,8 @@
-from import_wanted import import_file
+# from import_wanted import import_file
 from pathlib import Path
+import Src.services.gen_dev_data as gen
 
-gen = import_file(Path("gen_dev_data.py"))
+# gen = import_file(Path("gen_dev_data.py"))
 
 
 def test_gen_file_token():
