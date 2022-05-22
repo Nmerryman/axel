@@ -12,3 +12,16 @@ There is a single client which can run multiple services which it uses to partic
     - login info
     - caches
     - permission tokens
+
+##### Files of importance
+- data/anchor
+  - Location verification
+  - What mode to use the client in
+- data/user/tokens
+  - Stores access information for requesting files
+- data/user/gates
+  - cache of previous network access points
+- Services
+  - Holds all the different modules I may care about
+  - Some actually run their own services, others just support
+    - Consider moving the libs to their own directory
