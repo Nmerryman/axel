@@ -37,6 +37,7 @@ def get_anchor():
     (DATA_PATH / "user").mkdir(exist_ok=True)
     (DATA_PATH / "user" / "tokens").touch(exist_ok=True)
     (DATA_PATH / "user" / "gates").touch(exist_ok=True)
+    (DATA_PATH / "user" / "storage_index").touch(exist_ok=True)
 
     return text
 
