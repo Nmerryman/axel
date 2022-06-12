@@ -1,5 +1,6 @@
 # This file is used to generate common code that cannot be abstracted normally and easily.
 # Running this file will generate possible missing definitions and stop the ide from getting mad at missing values
+# I may not need this file in the final.
 
 def generate_file(file_name: str, imports: list[str], code_blocks: list[str]):
     with open(file_name, 'w') as f:
@@ -53,6 +54,7 @@ class {name}:\n
 
 
 structures = list()
-structures.append(generate_generic_dataclass("FileToken", {"file_name": str, "hash_val": str, "auth_val": str, "valid_until": int}))
-structures.append(generate_generic_dataclass("FileIndex", {"file_name": str, "hash_val": str, "size": int, "lost_access": int}))
+structures.append(generate_generic_dataclass("FileToken", {"file_name": str, "hash_val": str, "auth_token": str, "valid_until": int}))  # single use Access/permission tokens
+structures.append(generate_generic_dataclass("FileIndex", {"file_name": str, "hash_val": str, "size": int, "lost_access": int}))  # Holds info on file location and info
+structures.append(generate_generic_dataclass("Gates", {"ip": str, "port": str}))
 generate_file("data_structures.py", ["import dataclasses", "from dataclasses import dataclass", "import json"], structures)

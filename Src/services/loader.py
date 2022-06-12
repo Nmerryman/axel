@@ -1,12 +1,13 @@
 import os
 from typing import Union
 from pathlib import Path
-from .data_structures import FileToken
+from .data_structures import FileToken, Gates
 import json
 
 
 """
 This indexes and loads/stores user info
+It also generates any missing files for first setup
 """
 
 DATA_PATH = Path("data")  # Where all user data is stored
@@ -35,6 +36,7 @@ def get_anchor():
     # make sure all needed files are here
     (DATA_PATH / "storage").mkdir(exist_ok=True)
     (DATA_PATH / "user").mkdir(exist_ok=True)
+    # It may be worth putting this data into a database
     (DATA_PATH / "user" / "tokens").touch(exist_ok=True)
     (DATA_PATH / "user" / "gates").touch(exist_ok=True)
     (DATA_PATH / "user" / "storage_index").touch(exist_ok=True)
@@ -59,6 +61,16 @@ def store_file_tokens(data: list[FileToken]):
 def load_file_tokens() -> list[FileToken]:
     data = json.loads(load_user_str("tokens"))
     return [FileToken(a) for a in data]
+
+
+def store_gate_names(data: list[Gates]):
+    prep = [a.dumps() for a in data]
+    store_user_str(json.dumps(prep), "gates")
+
+
+def load_gate_names():
+    data = json.loads(load_user_str("gates"))
+    return [Gates(a) for a in data]
 
 
 
