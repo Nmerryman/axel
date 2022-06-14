@@ -1,6 +1,10 @@
 from pathlib import Path
 import Src.services.gen_dev_data as gen
 
+"""
+This tests dev data generation for mock users and stuff
+"""
+
 
 def test_gen_file_token():
     # Ensure that the functions return something
