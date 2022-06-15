@@ -3,3 +3,4 @@
 *.env
 # all data info will be generated on first run, test data will be stored elsewhere
 Src/data
+venv

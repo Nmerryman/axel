@@ -1,6 +1,8 @@
-import net.server
+import net.server as BaseServer
+from net.data_structures import DEBUG
 import psutil
 import socket
+import time
 
 
 def gate_handler(conn: socket.socket, ip: str, cid: int, proxy_func: callable):
@@ -26,9 +28,12 @@ def main(is_root=False, forced_port=None):
         if my_port == 30000:
             raise ValueError("No open port found")
 
-    server = net.server.Server(my_port, gate_handler)
+    server = BaseServer.Server(my_port, gate_handler)
+    time.sleep(3)
+    server.shutdown()
 
 
 if __name__ == '__main__':
+    DEBUG = True
     main(forced_port=13000)
 
