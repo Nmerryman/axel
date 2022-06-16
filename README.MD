@@ -26,3 +26,17 @@ There is a single client which can run multiple services which it uses to partic
   - Some actually run their own services, others just support
     - Consider moving the libs to their own directory
   - Nothing here is supposed to be run directly
+
+
+##### There are a few servers that the client can host/run
+- Gate Server
+  - Is the entry point into the network
+  - Acts as a simple cache of all relevant nodes a new client should care about
+  - Shares a list of gates and directors to the client
+  - Its cache get updated through the director
+  - We assume there will be lots of sudden joining/leaving network
+- Director server
+  - Organizes topography of normal clients
+  - Sets up client feed
+    - Send feed info (metadata + location + auth)
+  - Inform hoster about incoming request (includes auth)
