@@ -2,7 +2,7 @@ import json
 import enum
 
 
-DEBUG = False
+DEBUG = True
 
 
 def log(*text):
