@@ -1,7 +1,7 @@
 import threading
 import time
 import socket
-from data_structures import *
+from Src.services.net.data_structures import *
 
 
 class Server:
@@ -76,7 +76,7 @@ class Server:
         log(f"Ending {ip}")
 
     def proxy(self, command):
-        # Allow a thread to use commands from the main thread
+        # Allow a thread to use commands from the main thread (with permission)
         data = Packet().parse(command)
         if data.type == MessageType.command:
             if data.value == Commands.exit:
@@ -86,6 +86,8 @@ class Server:
                 return self.alive
             elif data.value == Commands.broadcast and data.extra:
                 self.broadcast(data.generate(), exclude=int(data.extra))
+            if data.value == Commands.request and data.extra == "self":
+                return self
 
     def pseudo_connection(self, port):
         ks = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
