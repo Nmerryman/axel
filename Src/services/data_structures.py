@@ -76,10 +76,10 @@ class FileIndex:
 
 
 @dataclass
-class Gates:
+class Client:
 
     ip: str
-    port: str
+    port: int
 
     def __init__(self, ip=None, port=None):
         if not ip:

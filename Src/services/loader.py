@@ -1,7 +1,7 @@
 import os
 from typing import Union
 from pathlib import Path
-from .data_structures import FileToken, Gates
+from .data_structures import FileToken, Client
 import json
 
 
@@ -40,6 +40,7 @@ def get_anchor():
     (DATA_PATH / "user" / "tokens").touch(exist_ok=True)
     (DATA_PATH / "user" / "gates").touch(exist_ok=True)
     (DATA_PATH / "user" / "storage_index").touch(exist_ok=True)
+    (DATA_PATH / "user" / "directors").touch(exist_ok=True)
 
     return text
 
@@ -63,15 +64,22 @@ def load_file_tokens() -> list[FileToken]:
     return [FileToken(a) for a in data]
 
 
-def store_gate_names(data: list[Gates]):
+def store_gate_names(data: list[Client]):
     prep = [a.dumps() for a in data]
     store_user_str(json.dumps(prep), "gates")
 
 
 def load_gate_names():
     data = json.loads(load_user_str("gates"))
-    return [Gates(a) for a in data]
+    return [Client(a) for a in data]
 
 
+def store_directors(data: list[Client]):
+    prep = [a.dumps() for a in data]
+    store_user_str(json.dumps(prep), "directors")
 
+
+def load_directors():
+    data = json.loads(load_user_str("directors"))
+    return [Client(a) for a in data]
 

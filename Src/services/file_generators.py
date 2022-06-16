@@ -56,5 +56,5 @@ class {name}:\n
 structures = list()
 structures.append(generate_generic_dataclass("FileToken", {"file_name": str, "hash_val": str, "auth_token": str, "valid_until": int}))  # single use Access/permission tokens
 structures.append(generate_generic_dataclass("FileIndex", {"file_name": str, "hash_val": str, "size": int, "lost_access": int}))  # Holds info on file location and info
-structures.append(generate_generic_dataclass("Gates", {"ip": str, "port": str}))
+structures.append(generate_generic_dataclass("Client", {"ip": str, "port": int}))
 generate_file("data_structures.py", ["import dataclasses", "from dataclasses import dataclass", "import json"], structures)
