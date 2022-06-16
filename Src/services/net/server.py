@@ -2,6 +2,7 @@ import threading
 import time
 import socket
 from Src.services.net.data_structures import *
+import psutil
 
 
 class Server:
@@ -113,3 +114,14 @@ class Server:
         if cid in self.clients.keys():
             conn = self.clients[cid][0]
             conn.sendall(Packet().generate())
+
+
+def get_first_port_from(port: int, limit: int = 50000) -> int:
+
+    used_ports = [a.laddr.port for a in psutil.net_connections()]
+    while port in used_ports and port <= limit:
+        port += 1
+    if port == limit:
+        raise ValueError("No valid port found")
+    
+    return port
