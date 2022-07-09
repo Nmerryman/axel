@@ -4,6 +4,8 @@ import psutil
 import socket
 import time
 
+# This service is designed to allow more (unpriveleded) servers to provide access points into the network
+
 
 def gate_handler(conn: socket.socket, ip: str, cid: int, proxy_func: callable):
     pass
