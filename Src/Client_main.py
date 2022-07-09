@@ -25,7 +25,8 @@ def main():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--gate", action="store_true", help="Use client as an entry point")
-    parser.add_argument("--root", action="store_true", help="Act as the first entry point with only knowledge of self")
+    parser.add_argument("--director", action="store_true", help="Act as a central point that assigns queues")
+    parser.add_argument("--root", action="store_true", help="Use only with director flag. Treats as client as root")
 
     args = parser.parse_args()
     if args.gate:
