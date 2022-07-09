@@ -55,41 +55,22 @@ def load_user_str(location: Union[str, Path]) -> str:
     return (DATA_PATH / "user" / location).read_text()
 
 
-def store_file_tokens(data: list[FileToken]):
-    prep = [a.dumps() for a in data]
-    store_user_str(json.dumps(prep), "tokens")
+def store_user_data(name: str, data: list[FileToken]): # the actual type doesn't matter because they all have a dump method
+    if name in ("tokens", "gates", "directors"):
+        prep = [a.dumps() for a in data]
+        store_user_str(json.dumps(prep), name)
+    elif name in ("logs",):
+        # noinspection PyTypeChecker
+        store_user_str("\n".join(data), name)
 
 
-def load_file_tokens() -> list[FileToken]:
-    data = json.loads(load_user_str("tokens"))
-    return [FileToken(a) for a in data]
-
-
-def store_gate_names(data: list[Client]):
-    prep = [a.dumps() for a in data]
-    store_user_str(json.dumps(prep), "gates")
-
-
-def load_gate_names():
-    data = json.loads(load_user_str("gates"))
-    return [Client(a) for a in data]
-
-
-def store_directors(data: list[Client]):
-    prep = [a.dumps() for a in data]
-    store_user_str(json.dumps(prep), "directors")
-
-
-def load_directors():
-    data = json.loads(load_user_str("directors"))
-    return [Client(a) for a in data]
-
-
-def store_logs(data: list[str]):
-    store_user_str("\n".join(data), "logs")
-
-
-def load_logs():
-    return load_user_str("logs").split("\n")
+def load_user_data(name: str) -> list[FileToken]:  # same type comment as before
+    if name in ("tokens", "gates", "directors"):
+        data = json.loads(load_user_str(name))
+        return [FileToken(a) for a in data]
+    elif name in ("logs",):
+        # noinspection PyTypeChecker
+        return load_user_str(name).split("\n")
+    print("nothing,", name)
 
 

@@ -15,8 +15,8 @@ if anchor == "DEV":
 
 def main():
 
-    loader.store_file_tokens([file_token_default()])
-    l = loader.load_file_tokens()
+    loader.store_user_data("tokens", [file_token_default()])
+    l = loader.load_user_data("tokens")
     t = file_token_default()
     t.file_name = "e"
     print(t == l[0])
@@ -33,4 +33,5 @@ if __name__ == '__main__':
         print("Acting as gate")
     else:
         print("Not a gate")
+    main()
 
