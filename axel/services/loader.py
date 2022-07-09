@@ -41,6 +41,7 @@ def get_anchor():
     (DATA_PATH / "user" / "gates").touch(exist_ok=True)
     (DATA_PATH / "user" / "storage_index").touch(exist_ok=True)
     (DATA_PATH / "user" / "directors").touch(exist_ok=True)
+    (DATA_PATH / "user" / "logs").touch(exist_ok=True)
 
     return text
 
@@ -82,4 +83,13 @@ def store_directors(data: list[Client]):
 def load_directors():
     data = json.loads(load_user_str("directors"))
     return [Client(a) for a in data]
+
+
+def store_logs(data: list[str]):
+    store_user_str("\n".join(data), "logs")
+
+
+def load_logs():
+    return load_user_str("logs").split("\n")
+
 
