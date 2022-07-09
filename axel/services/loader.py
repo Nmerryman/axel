@@ -58,7 +58,10 @@ def store_user_str(string: str, location: Union[str, Path]):
 
 
 def load_user_str(location: Union[str, Path]) -> str:
-    return (DATA_PATH / "user" / location).read_text()
+    text = (DATA_PATH / "user" / location).read_text()
+    if text == "":
+        text = "[]"
+    return text
 
 
 def store_user_data(name: str, data: list[FileToken]): # the actual type doesn't matter because they all have a dump method
