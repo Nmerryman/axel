@@ -46,6 +46,12 @@ def get_anchor():
     return text
 
 
+def get_anchor_dev():
+    global DATA_PATH
+    DATA_PATH = Path("dev_data")
+    return get_anchor()
+
+
 # may not even want these helpers because they do so little
 def store_user_str(string: str, location: Union[str, Path]):
     (DATA_PATH / "user" / location).write_text(string)
