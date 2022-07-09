@@ -1,5 +1,5 @@
 from pathlib import Path
-import Src.services.gen_dev_data as gen
+import axel.services.gen_dev_data as gen
 
 """
 This tests dev data generation for mock users and stuff

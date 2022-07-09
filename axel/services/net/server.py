@@ -1,7 +1,7 @@
 import threading
 import time
 import socket
-from Src.services.net.data_structures import *
+from axel.services.net.data_structures import *
 import psutil
 
 
