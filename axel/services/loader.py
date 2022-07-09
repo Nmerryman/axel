@@ -1,7 +1,7 @@
 import os
 from typing import Union
 from pathlib import Path
-from .data_structures import FileToken, Client
+from .data_structures import FileToken, Client, LogEntry
 import json
 
 
@@ -56,21 +56,17 @@ def load_user_str(location: Union[str, Path]) -> str:
 
 
 def store_user_data(name: str, data: list[FileToken]): # the actual type doesn't matter because they all have a dump method
-    if name in ("tokens", "gates", "directors"):
+    if name in ("tokens", "gates", "directors", "logs"):
+
         prep = [a.dumps() for a in data]
         store_user_str(json.dumps(prep), name)
-    elif name in ("logs",):
-        # noinspection PyTypeChecker
-        store_user_str("\n".join(data), name)
 
 
 def load_user_data(name: str) -> list[FileToken]:  # same type comment as before
-    if name in ("tokens", "gates", "directors"):
+    if name in ("tokens", "gates", "directors", "logs"):
+        name_to_class = {"tokens": FileToken, "gates": Client, "directors": Client, "logs": LogEntry}
         data = json.loads(load_user_str(name))
-        return [FileToken(a) for a in data]
-    elif name in ("logs",):
-        # noinspection PyTypeChecker
-        return load_user_str(name).split("\n")
+        return [name_to_class[name](a) for a in data]
     print("nothing,", name)
 
 
