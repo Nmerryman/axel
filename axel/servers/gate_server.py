@@ -1,5 +1,5 @@
-import net.server as BaseServer
-from net.data_structures import DEBUG
+import axel.services.net.server as BaseServer
+from axel.services.net.data_structures import DEBUG
 import psutil
 import socket
 import time
