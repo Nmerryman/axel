@@ -69,7 +69,7 @@ class Server:
                 t.start()
                 self.running_threads.append(t)
 
-    def thread_base(self, func, conn, ip, proxy, cid):
+    def thread_base(self, func: callable, conn: socket.socket, ip: str, proxy: callable, cid: int):
         # Might not even need this base
         self.clients[cid] = (conn, ip)
         func(conn, ip, cid, proxy)
