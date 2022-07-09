@@ -103,3 +103,32 @@ class Client:
     def dumps(self):
         return json.dumps(self._to_dict())
 
+
+@dataclass
+class LogEntry:
+
+    source: str
+    message: str
+
+    def __init__(self, source=None, message=None):
+        if not source:
+            raise ValueError("No parameters given")
+        elif isinstance(source, dict):
+            self._load_dict(source)
+        elif isinstance(source, str) and not message:
+            # Assume only json string is passed
+            self._load_dict(json.loads(source))
+        else:
+            self.source = source
+            self.message = message
+
+    def _load_dict(self, data: dict):
+        self.source = data["source"]
+        self.message = data["message"]
+
+    def _to_dict(self):
+        return dataclasses.asdict(self)
+
+    def dumps(self):
+        return json.dumps(self._to_dict())
+
