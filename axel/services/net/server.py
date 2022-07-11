@@ -98,7 +98,10 @@ class Server:
     def shutdown(self):
         # Kill what we can and then do some extra checking
         self.alive = False
-        self.pseudo_connection(self.root_port)  # unblock listener thread
+        try:
+            self.pseudo_connection(self.root_port)  # unblock listener thread
+        except ConnectionRefusedError:
+            pass
 
         # everything should clean itself up now. Not sure if I want to forcibly kill active threads
 
