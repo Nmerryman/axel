@@ -23,10 +23,6 @@ def test_start_servers():
     assert not any([a.is_alive() for a in server.running_threads]) and not server.alive
 
 
-# def test_change_log_diff():
-#
-
-
 def test_store_entry():
     global global_serv
     port = get_first_port_from(13131)
@@ -52,8 +48,6 @@ def test_store_entry():
     assert start != current
 
     server.shutdown()
-
-
 
 
 try:
