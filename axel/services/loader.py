@@ -64,7 +64,7 @@ def load_user_str(location: Union[str, Path]) -> str:
     return text
 
 
-def store_user_data(name: str, data: list[FileToken]): # the actual type doesn't matter because they all have a dump method
+def store_user_data(name: str, data: list[FileToken | Client | LogEntry]): # the actual type doesn't matter because they all have a dump method
     if name in ("tokens", "gates", "directors", "logs"):
 
         prep = [a.dumps() for a in data]

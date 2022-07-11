@@ -22,5 +22,3 @@ def test_FileToken():
     assert t == n
 
 
-
-
