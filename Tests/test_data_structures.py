@@ -9,7 +9,7 @@ def test_FileToken():
     assert isinstance(t, ds.FileToken)
     assert t.file_name == 'a'
     assert t.hash_val == 'b'
-    assert t.auth_val == 'c'
+    assert t.auth_token == 'c'
     assert t.valid_until == 1
 
     # dumping and loading from string works correctly
