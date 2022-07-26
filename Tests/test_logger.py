@@ -45,7 +45,7 @@ def test_store_entry():
     server.log_diff = 1
     sleep(1)
     current = loader.load_user_data("logs")
-    assert start != current
+    assert start != current  # make sure the auto saver feature works
 
     server.shutdown()
 

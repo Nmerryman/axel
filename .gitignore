@@ -3,5 +3,6 @@
 *.env
 # all data info will be generated on first run, test data will be stored elsewhere
 axel/data
+axel/dev_data/user/logs
 venv
 *aoeu*

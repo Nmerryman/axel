@@ -30,7 +30,7 @@ def store_logs(server: serv.Server):
     count = 2
     while server.alive and count > 0:
         if num + server.log_diff > len(server.logs):
-            print("waiting", num, server.log_diff, len(server.logs))
+            # print("waiting", num, server.log_diff, len(server.logs))
             sleep(1)
         else:
             lock.acquire()
@@ -40,7 +40,7 @@ def store_logs(server: serv.Server):
                 with open("aoeuaoeu.txt", 'w') as f:
                     f.write(str(e))
             num = len(server.logs)
-            print("saveing", num)
+            # print("saveing", num)
             lock.release()
         count -= 1
     server.shutdown()
@@ -68,7 +68,7 @@ def main():
     server.logs = current_data
     server.proxy = simple_proxy
     server.log_diff = 10
-    t = Thread(target=store_logs, args=(server,))
+    t = Thread(target=store_logs, args=(server,))  # thread monitors the server
     t.start()
     # server.mainloop()
     sleep(5)
