@@ -45,13 +45,24 @@ class Server:
                 self.alive = False
 
         # Kill the mainloop once all other threads are dead
+        alive_count = {}
+        for a in range(len(self.running_threads)):
+            alive_count[a] = 0
         while True:
             all_dead = True
             for num_a, a in enumerate(self.running_threads):
                 if a.is_alive():
                     log(f"Thread {num_a} is still alive")
                     all_dead = False
-
+                    alive_count[num_a] += 1
+                if alive_count[num_a] > 3:
+                    if num_a == 0:
+                        try:
+                            self.pseudo_connection(self.root_port)
+                        except ConnectionRefusedError:
+                            log(f"Thread {num_a} refused new socket")  # we may be able to tell us this without needing the exception
+                    else:
+                        pass  # Not sure I can send into the cid connection
             if all_dead:
                 break
 
