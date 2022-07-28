@@ -76,11 +76,11 @@ class Server:
             conn, ip = s.accept()
             log(f"Connection from {ip}")
             if self.alive:
-                t = threading.Thread(target=self.thread_base, args=(self.handle, conn, ip, self.proxy, len(self.running_threads)))
+                t = threading.Thread(target=self.thread_base, args=(self.handle, conn, ip, len(self.running_threads), self.proxy))
                 t.start()
                 self.running_threads.append(t)
 
-    def thread_base(self, func: callable, conn: socket.socket, ip: str, proxy: callable, cid: int):
+    def thread_base(self, func: callable, conn: socket.socket, ip: str, cid: int, proxy: callable):
         # Might not even need this base
         self.clients[cid] = (conn, ip)
         func(conn, ip, cid, proxy)
