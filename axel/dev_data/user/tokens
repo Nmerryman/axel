@@ -1,1 +1,1 @@
-["{\"file_name\": \"a\", \"hash_val\": \"b\", \"auth_val\": \"c\", \"valid_until\": 1}"]
+["{\"file_name\": \"a\", \"hash_val\": \"b\", \"auth_token\": \"c\", \"valid_until\": 1}"]
