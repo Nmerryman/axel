@@ -32,6 +32,9 @@ class Packet:
     def __getitem__(self, name: str):
         return self.storage[name.upper()]
 
+    def __eq__(self, other):
+        return self.storage == other.storage
+
     def load_storage(self):
         self.type = self.storage["TYPE"]
         self.value = self.storage["VALUE"]
