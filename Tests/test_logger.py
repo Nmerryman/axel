@@ -25,6 +25,7 @@ def test_start_servers():
 
 def test_store_entry():
     global global_serv
+    loader.store_user_str("", "logs")
     port = get_first_port_from(13131)
     server = logger.start_server(port)
     global_serv = server
