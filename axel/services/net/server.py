@@ -55,7 +55,7 @@ class Server:
                     log(f"Thread {num_a} is still alive")
                     all_dead = False
                     alive_count[num_a] += 1
-                if alive_count[num_a] > 3:
+                if alive_count[num_a] > 1:
                     if num_a == 0:
                         try:
                             self.pseudo_connection(self.root_port)
