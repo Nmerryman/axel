@@ -7,6 +7,9 @@ from string import ascii_letters, ascii_uppercase, ascii_lowercase
 
 
 def test_packet_init():
+    """
+    Test Packet init
+    """
     p = ds.Packet(1, 2, 3, 4)
     assert p.type == 1
     assert p.value == 2
@@ -16,6 +19,9 @@ def test_packet_init():
 
 
 def test_packet_setters():
+    """
+    Test setters
+    """
     p = ds.Packet()
     assert not any((p.type, p.value, p.data, p.extra))
     p.set_type("a")
@@ -26,6 +32,9 @@ def test_packet_setters():
 
 
 def test_packet_comparison():
+    """
+    Test __eq__
+    """
     a = ds.Packet(1, 2)
     b = ds.Packet(1, 2)
     assert a == b
@@ -34,6 +43,9 @@ def test_packet_comparison():
 
 
 def test_packet_gen_and_parse():
+    """
+    Test byte generation and parsing
+    """
     p = ds.Packet(1, 2, 3, 4)
     gen = p.generate()
     assert len(gen) > 10
@@ -42,6 +54,7 @@ def test_packet_gen_and_parse():
 
 
 def client_handle(message: bytes, conn: socket.socket, *args):
+    # This is a helper function for the server
     conn.sendall(message)
     conn.close()
 
@@ -89,17 +102,19 @@ def test_partial_wrapped_partial():
 
 
 def test_parse_sent_packet():
+    # Set up basic server to respond
     port = serv.get_first_port_from(13131)
     p = ds.Packet(1, 2)
     s = serv.Server(port, partial(client_handle, p.generate()))
 
+    # Create and connect wrapped socket
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     conn.connect(("localhost", port))  # connecting is a blocking only operation so it must be done first
     wrap = ds.WrappedConnection(conn)
 
     sleep(.01)  # Socket has some delay needed
     assert not wrap.partial
-    wrap.load_awaited()
+    wrap.load_awaited()  # Load all data from buffer
     assert wrap.partial
     wrap.parse_partial()
     assert not wrap.partial
@@ -109,12 +124,18 @@ def test_parse_sent_packet():
 
 
 def test_gen_stream():
+    """
+    Can the new stream format be generated
+    """
     base = ascii_letters.encode("utf-8")
     prep = ds.WrappedConnection.prep_stream(base)
     assert len(prep) >= len(base) + 2  # At least two field need to be inserted
 
 
 def test_parse_stream():
+    """
+    Can a basic stream format be parsed
+    """
     base = ascii_letters.encode("utf-8")
     wrap = ds.WrappedConnection(None)
     wrap.partial = wrap.prep_stream(base)
@@ -128,6 +149,9 @@ def test_parse_stream():
 
 
 def test_parse_other_stream():
+    """
+    Test variations on stream parsing
+    """
     base = ascii_uppercase.encode("utf-8")
     other = ascii_lowercase.encode("utf-8")
     wrap = ds.WrappedConnection(None)
