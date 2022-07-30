@@ -6,3 +6,4 @@ axel/data
 axel/dev_data/user/logs
 venv
 *aoeu*
+*debug_testing.py
