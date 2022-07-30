@@ -3,6 +3,7 @@ import axel.services.net.server as serv
 import socket
 from functools import partial
 from time import sleep
+from string import ascii_letters, ascii_uppercase, ascii_lowercase
 
 
 def test_packet_init():
@@ -105,6 +106,51 @@ def test_parse_sent_packet():
     assert wrap.finished[-1] == p
 
     s.shutdown()
+
+
+def test_gen_stream():
+    base = ascii_letters.encode("utf-8")
+    prep = ds.WrappedConnection.prep_stream(base)
+    assert len(prep) >= len(base) + 2  # At least two field need to be inserted
+
+
+def test_parse_stream():
+    base = ascii_letters.encode("utf-8")
+    wrap = ds.WrappedConnection(None)
+    wrap.partial = wrap.prep_stream(base)
+
+    wrap.parse_partial()
+    assert len(wrap.finished) == 0  # Nothing should happen when the wrapper is in the wrong mode
+    wrap.mode = "stream"
+    wrap.parse_partial()
+    assert len(wrap.finished) == 1
+    assert wrap.finished[0] == ascii_letters.encode("utf-8")
+
+
+def test_parse_other_stream():
+    base = ascii_uppercase.encode("utf-8")
+    other = ascii_lowercase.encode("utf-8")
+    wrap = ds.WrappedConnection(None)
+    wrap.mode = 'stream'
+    wrap.partial = wrap.prep_stream(base) + wrap.prep_stream(other)
+
+    # Parse multiple streams queue up
+    assert not wrap.finished
+    wrap.parse_partial()
+    assert len(wrap.finished) == 2
+    assert wrap.finished[0] == ascii_uppercase.encode("utf-8")
+    assert not wrap.partial
+
+    wrap.finished = []
+    wrap.partial = wrap.prep_stream(base) + wrap.prep_stream(other)[:-10]
+
+    # Parse only finished stream parts
+    wrap.parse_partial()
+    assert len(wrap.finished) == 1
+    assert wrap.finished[0] == base
+    assert wrap.partial
+
+
 
 
 
