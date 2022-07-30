@@ -4,7 +4,7 @@ import socket
 from string import ascii_letters
 import select
 
-DEBUG = True
+DEBUG = False
 
 
 def log(*text):
@@ -78,7 +78,8 @@ class WrappedConnection:
 
     def __init__(self, connection: socket.socket):
         self.conn = connection
-        self.conn.setblocking(False)
+        if self.conn:  # This is for when I want to pass None for debugging
+            self.conn.setblocking(False)
         self.partial = b''
         self.finished = []
         self.recv_size = 1000
@@ -96,7 +97,6 @@ class WrappedConnection:
         first = True
         readable = []
         while (first or readable) and self.alive:
-            print(self.partial)
             readable, _, errors = select.select([self.conn], [], [self.conn], 0)
             if readable:
                 self.partial += self.conn.recv(self.recv_size)
@@ -117,7 +117,9 @@ class WrappedConnection:
                     depth -= 1
                     if depth == 0:
                         ends.append(num_a)
-            if len(starts) == len(ends) and len(ends) > 0:
+            if len(starts) > len(ends):
+                starts.pop()
+            if len(starts) == len(ends) and len(ends) > 0:  # We may be able to optomize this, but it's probably not needed
                 for s, e in zip(starts, ends):
                     self.finished.append(Packet().parse(self.partial[s:e+1]))
                 self.partial = self.partial[ends[-1]+1:]
