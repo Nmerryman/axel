@@ -24,6 +24,14 @@ def test_packet_setters():
     assert all((p.type, p.value, p.data, p.extra))
 
 
+def test_packet_comparison():
+    a = ds.Packet(1, 2)
+    b = ds.Packet(1, 2)
+    assert a == b
+    b.set_type(2)
+    assert a != b
+
+
 def test_packet_gen_and_parse():
     p = ds.Packet(1, 2, 3, 4)
     gen = p.generate()
