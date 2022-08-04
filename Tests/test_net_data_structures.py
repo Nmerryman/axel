@@ -55,6 +55,7 @@ def test_packet_gen_and_parse():
 
 def client_handle(message: bytes, conn: socket.socket, *args):
     # This is a helper function for the server
+
     conn.sendall(message)
     conn.close()
 
@@ -64,12 +65,12 @@ def test_wrapped_partial():
     We can parse a single set packet
     """
     wrap = ds.WrappedConnection(None)  # None will not work with real sockets
-    assert not wrap.partial  # Starts with nothing
+    assert not wrap._partial  # Starts with nothing
     assert not wrap.finished
-    wrap.partial = ds.Packet(1).generate()
-    assert wrap.partial  # Something is queued up
-    wrap.parse_partial()
-    assert not wrap.partial  # Everything gets parsed and mooved
+    wrap._partial = wrap._generate_final_obj(ds.Packet(1))
+    assert wrap._partial  # Something is queued up
+    wrap.parse_full_partial()
+    assert not wrap._partial  # Everything gets parsed and mooved
     assert wrap.finished
     assert wrap.finished[0] == ds.Packet(1)
 
@@ -79,9 +80,9 @@ def test_two_wrapped_partial():
     We can send and parse multiple packets
     """
     wrap = ds.WrappedConnection(None)
-    wrap.partial = ds.Packet(1).generate() + ds.Packet(2).generate()
-    assert wrap.partial
-    wrap.parse_partial()
+    wrap._partial = wrap._generate_final_obj(ds.Packet(1)) + wrap._generate_final_obj(ds.Packet(2))
+    assert wrap._partial
+    wrap.parse_full_partial()
     assert len(wrap.finished) == 2
     assert wrap.finished[1].type == 2
 
@@ -92,20 +93,20 @@ def test_partial_wrapped_partial():
     """
     wrap = ds.WrappedConnection(None)
     p = ds.Packet(1)
-    payload = p.generate() * 2
+    payload = wrap._generate_final_obj(p) * 2
     cut = payload[:-5]
-    wrap.partial = cut
-    wrap.parse_partial()
+    wrap._partial = cut
+    wrap.parse_full_partial()
     assert len(wrap.finished) == 1
     assert wrap.finished[0] == p
-    assert wrap.partial == p.generate()[:-5]
+    assert wrap._partial == wrap._generate_final_obj(p)[:-5]
 
 
 def test_parse_sent_packet():
     # Set up basic server to respond
     port = serv.get_first_port_from(13131)
     p = ds.Packet(1, 2)
-    s = serv.Server(port, partial(client_handle, p.generate()))
+    s = serv.Server(port, partial(client_handle, ds.WrappedConnection(None)._generate_final_obj(p)))
 
     # Create and connect wrapped socket
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,11 +114,13 @@ def test_parse_sent_packet():
     wrap = ds.WrappedConnection(conn)
 
     sleep(.01)  # Socket has some delay needed
-    assert not wrap.partial
+    s.shutdown()  # Now the tests can finish even when this test fails. We are assuming we make it here
+
+    assert not wrap._partial
     wrap.load_awaited()  # Load all data from buffer
-    assert wrap.partial
-    wrap.parse_partial()
-    assert not wrap.partial
+    assert wrap._partial
+    wrap.parse_full_partial()
+    assert not wrap._partial
     assert wrap.finished[-1] == p
 
     s.shutdown()
@@ -128,7 +131,7 @@ def test_gen_stream():
     Can the new stream format be generated
     """
     base = ascii_letters.encode("utf-8")
-    prep = ds.WrappedConnection.prep_stream(base)
+    prep = ds.WrappedConnection._prep_stream(base)
     assert len(prep) >= len(base) + 2  # At least two field need to be inserted
 
 
@@ -138,12 +141,9 @@ def test_parse_stream():
     """
     base = ascii_letters.encode("utf-8")
     wrap = ds.WrappedConnection(None)
-    wrap.partial = wrap.prep_stream(base)
+    wrap._partial = wrap._generate_final_obj(base)
 
-    wrap.parse_partial()
-    assert len(wrap.finished) == 0  # Nothing should happen when the wrapper is in the wrong mode
-    wrap.mode = "stream"
-    wrap.parse_partial()
+    wrap.parse_full_partial()
     assert len(wrap.finished) == 1
     assert wrap.finished[0] == ascii_letters.encode("utf-8")
 
@@ -155,24 +155,23 @@ def test_parse_other_stream():
     base = ascii_uppercase.encode("utf-8")
     other = ascii_lowercase.encode("utf-8")
     wrap = ds.WrappedConnection(None)
-    wrap.mode = 'stream'
-    wrap.partial = wrap.prep_stream(base) + wrap.prep_stream(other)
+    wrap._partial = wrap._generate_final_obj(base) + wrap._generate_final_obj(other)
 
     # Parse multiple streams queue up
     assert not wrap.finished
-    wrap.parse_partial()
+    wrap.parse_full_partial()
     assert len(wrap.finished) == 2
     assert wrap.finished[0] == ascii_uppercase.encode("utf-8")
-    assert not wrap.partial
+    assert not wrap._partial
 
     wrap.finished = []
-    wrap.partial = wrap.prep_stream(base) + wrap.prep_stream(other)[:-10]
+    wrap._partial = wrap._generate_final_obj(base) + wrap._generate_final_obj(other)[:-10]
 
     # Parse only finished stream parts
-    wrap.parse_partial()
+    wrap.parse_full_partial()
     assert len(wrap.finished) == 1
     assert wrap.finished[0] == base
-    assert wrap.partial
+    assert wrap._partial
 
 
 
