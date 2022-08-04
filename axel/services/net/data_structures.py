@@ -198,6 +198,7 @@ class WrappedConnection:
     def parse_full_partial(self):
         """
         This would try to parse the entire partial instead of extracting one at a time.
+
         """
         current = len(self._partial)
         new_len = 0
@@ -205,6 +206,14 @@ class WrappedConnection:
             current = len(self._partial)
             self.parse_message()
             new_len = len(self._partial)
+
+    def parse_all(self):
+        """
+        One stop function to load deal with everything the connection has ready.
+        """
+        self.load_awaited()
+        self.parse_full_partial()
+
 
     def _generate_final_obj(self, data: Union[bytes, Packet]):
         """
