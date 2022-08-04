@@ -86,7 +86,7 @@ class WrappedConnection:
         self.conn = connection
         if self.conn:  # This is for when I want to pass None for debugging
             self.conn.setblocking(False)
-        self.partial = b''
+        self._partial = b''
         self.finished = []
         self.recv_size = 1000
         # Packet mode takes advantage of json formatting to detect start and ends of packets and then rebuilds the original messages
@@ -113,7 +113,7 @@ class WrappedConnection:
         while (first or readable) and self.alive:
             readable, _, errors = select.select([self.conn], [], [self.conn], 0)
             if readable:
-                self.partial += self.conn.recv(self.recv_size)
+                self._partial += self.conn.recv(self.recv_size)
                 readable = []
             first = False
 
@@ -133,114 +133,99 @@ class WrappedConnection:
         """
         Extract only the first message from the partial
         """
-        if self.partial:
-            if self.partial[0] == 1:  # if it's a packet
+        if self._partial:
+            if self._partial[0] == 1:  # if it's a packet
                 depth = 1
                 index = 2  # skip the first "{"
-                max_len = len(self.partial)
+                max_len = len(self._partial)
                 while depth > 0:
-                    if index > max_len:
-                        print("emergency return, should probably do something here")  # TODO
+                    if index >= max_len:
+                        log("[Unfinished Packet] emergency return, should probably do something here")  # TODO
                         return False
-                    if self.partial[index] == ord(b'{'):
+                    if self._partial[index] == ord(b'{'):
                         depth += 1
-                    elif self.partial[index] == ord(b'}'):
+                    elif self._partial[index] == ord(b'}'):
                         depth -= 1
                     else:
                         pass
                     index += 1
                 # We already checked for a valid finished message
-                cropped = self.partial[1:index]
-                self.partial = self.partial[index:]
+                cropped = self._partial[1:index]
+                self._partial = self._partial[index:]
                 self.finished.append(Packet().parse(cropped))
-            elif self.partial[0] == 0:
-                partial_len = len(self.partial)
+            elif self._partial[0] == 0:
+                partial_len = len(self._partial)
                 if partial_len < 2:  # All of these checks are to ensure loaded message is large enough, TODO wrap all in a try?
                     return False
-                root_len = self.partial[1]
+                root_len = self._partial[1]
                 if partial_len < root_len + 2:
                     return False
-                msg_len = int.from_bytes(self.partial[2:2 + root_len], 'little')
+                msg_len = int.from_bytes(self._partial[2:2 + root_len], 'little')
                 if partial_len < msg_len + root_len + 2:
                     return False
 
                 # We should have verified the length by now
-                self.finished.append(self.partial[2+root_len:2+root_len+msg_len])
-                self.partial = self.partial[2+root_len+msg_len:]
+                self.finished.append(self._partial[2+root_len:2+root_len+msg_len])
+                self._partial = self._partial[2+root_len+msg_len:]
 
-            elif self.partial[0] == 2:  # we can probably merge the 0 and 2 check to clean it up
+            elif self._partial[0] == 2:  # we can probably merge the 0 and 2 check to clean it up
                 # This is for meta commands
                 depth = 1
                 index = 2  # skip the first "{"
-                max_len = len(self.partial)
+                max_len = len(self._partial)
                 while depth > 0:
                     if index > max_len:
                         print("emergency return, should probably do something here")  # TODO
                         return False
-                    if self.partial[index] == ord(b'{'):
+                    if self._partial[index] == ord(b'{'):
                         depth += 1
-                    elif self.partial[index] == ord(b'}'):
+                    elif self._partial[index] == ord(b'}'):
                         depth -= 1
                     else:
                         pass
                     index += 1
                 # We already checked for a valid finished message
-                cropped = self.partial[1:index]
-                self.partial = self.partial[index:]
+                cropped = self._partial[1:index]
+                self._partial = self._partial[index:]
 
                 msg = Packet().parse(cropped)
-                if not msg.type == 'meta':  # We only want meta commands when going down this path
+                if not msg.type == 'socket meta':  # We only want meta commands when going down this path
                     return False
                 if msg.value == 'close':
                     self.alive = False
         return True
 
-    def parse_partial(self):
+    def parse_full_partial(self):
         """
         This would try to parse the entire partial instead of extracting one at a time.
         """
-        if self.mode == "packet":
-            depth = 0
-            starts = []
-            ends = []
-            for num_a, a in enumerate(self.partial):
-                if a == ord(b'{'):
-                    if depth == 0:
-                        starts.append(num_a)
-                    depth += 1
-                if a == ord(b'}'):
-                    depth -= 1
-                    if depth == 0:
-                        ends.append(num_a)
-            if len(starts) > len(ends):
-                starts.pop()
-            if len(starts) == len(ends) and len(ends) > 0:  # We may be able to optomize this, but it's probably not needed
-                for s, e in zip(starts, ends):
-                    self.finished.append(Packet().parse(self.partial[s:e+1]))  # TODO the order of these may be reversed
-                self.partial = self.partial[ends[-1]+1:]
-        elif self.mode == "stream":
-            current = len(self.partial)
-            if current > 0:
-                root_len = self.partial[0]
-                if current > root_len + 1:
-                    msg_len = int.from_bytes(self.partial[1:root_len + 1], 'little')
-                    if current >= msg_len + root_len + 1:
-                        self.finished.append(self.partial[1 + root_len:1 + root_len + msg_len])
-                        self.partial = self.partial[1+root_len+msg_len:]
-                        self.parse_partial()  # Each iteration can only load 1 message at a time
+        current = len(self._partial)
+        new_len = 0
+        while new_len < current:
+            current = len(self._partial)
+            self.parse_message()
+            new_len = len(self._partial)
+
+    def _generate_final_obj(self, data: Union[bytes, Packet]):
+        """
+        The only reason this method was abstracted is for tests.
+        It converts objects to their final form which would then get sent over the connection
+        """
+        prep: bytes = b''
+        if isinstance(data, bytes):
+            prep = b'\x00' + self._prep_stream(data)
+        elif isinstance(data, Packet):
+            if not data.type == 'socket meta':  # if normal message
+                prep = b'\x01' + data.generate()
+            elif data.type == 'socket meta':  # is a meta message
+                prep = b'\x02' + data.generate()
+        return prep
 
     @life_check
     def send_obj(self, data: Union[bytes, Packet]):
-        prep: bytes = b''
-        if isinstance(data, bytes):
-            prep = b'\x00' + self.prep_stream(data)
-        elif isinstance(data, Packet):
-            if not data.type == 'socket meta':
-                prep = b'\x01' + data.generate()
-            else:
-                prep = b'\x02' + data.generate()
+        prep = self._generate_final_obj(data)
         self.conn.sendall(prep)
-        print(prep)
+        log(prep)
 
     @life_check
     def close(self):
@@ -248,7 +233,7 @@ class WrappedConnection:
         self.send_obj(packet)
 
     @staticmethod
-    def prep_stream(data: bytes):
+    def _prep_stream(data: bytes):
         size_len = len(data)
         size_byte = size_len.to_bytes((size_len.bit_length() + 7) // 8, 'little')
         root_len = len(size_byte)
