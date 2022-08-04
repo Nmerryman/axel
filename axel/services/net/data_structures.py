@@ -100,15 +100,14 @@ class WrappedConnection:
 
     @staticmethod
     def life_check(func):
-        def wrapper(self):
+        def wrapper(self, *args):
             if not self.alive:
                 raise ConnectionClosed("Socket has been closed and should not receive anything else")
-            func(self)
+            func(self, *args)
         return wrapper
 
     @life_check
     def load_awaited(self):
-        data = ""
         first = True
         readable = []
         while (first or readable) and self.alive:
@@ -143,13 +142,12 @@ class WrappedConnection:
                     if index > max_len:
                         print("emergency return, should probably do something here")  # TODO
                         return False
-                    match self.partial[index]:
-                        case 123:  # TODO see if there is a way to evaluate these instead of hardcoding
-                            depth += 1
-                        case 125:
-                            depth -= 1
-                        case _:
-                            pass
+                    if self.partial[index] == ord(b'{'):
+                        depth += 1
+                    elif self.partial[index] == ord(b'}'):
+                        depth -= 1
+                    else:
+                        pass
                     index += 1
                 # We already checked for a valid finished message
                 cropped = self.partial[1:index]
@@ -170,7 +168,7 @@ class WrappedConnection:
                 self.finished.append(self.partial[2+root_len:2+root_len+msg_len])
                 self.partial = self.partial[2+root_len+msg_len:]
 
-            elif self.partial[0] == 2:
+            elif self.partial[0] == 2:  # we can probably merge the 0 and 2 check to clean it up
                 # This is for meta commands
                 depth = 1
                 index = 2  # skip the first "{"
@@ -179,13 +177,12 @@ class WrappedConnection:
                     if index > max_len:
                         print("emergency return, should probably do something here")  # TODO
                         return False
-                    match self.partial[index]:
-                        case 123:  # TODO see if there is a way to evaluate these instead of hardcoding
-                            depth += 1
-                        case 125:
-                            depth -= 1
-                        case _:
-                            pass
+                    if self.partial[index] == ord(b'{'):
+                        depth += 1
+                    elif self.partial[index] == ord(b'}'):
+                        depth -= 1
+                    else:
+                        pass
                     index += 1
                 # We already checked for a valid finished message
                 cropped = self.partial[1:index]
