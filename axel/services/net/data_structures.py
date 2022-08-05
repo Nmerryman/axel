@@ -109,13 +109,12 @@ class WrappedConnection:
     @life_check
     def load_awaited(self):
         first = True
-        readable = []
-        while (first or readable) and self.alive:
-            readable, _, errors = select.select([self.conn], [], [self.conn], 0)
-            if readable:
-                self._partial += self.conn.recv(self.recv_size)
-                readable = []
+        change = ""
+        while change or first:
+            change = self.conn.recv(self.recv_size)
+            self._partial += change
             first = False
+
 
     @life_check
     def conn_status(self):
