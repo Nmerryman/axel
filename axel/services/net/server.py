@@ -43,6 +43,7 @@ class Server:
                 time.sleep(1)
             except:  # We want to catch ctrl-c
                 self.alive = False
+                print("Killing main server (pls allow at least 5s)")
 
         # Kill the mainloop once all other threads are dead
         alive_count = {}
