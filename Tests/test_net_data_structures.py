@@ -123,8 +123,6 @@ def test_parse_sent_packet():
     assert not wrap._partial
     assert wrap.finished[-1] == p
 
-    s.shutdown()
-
 
 def test_gen_stream():
     """
@@ -172,6 +170,31 @@ def test_parse_other_stream():
     assert len(wrap.finished) == 1
     assert wrap.finished[0] == base
     assert wrap._partial
+
+
+def test_small_recv_size():
+    """
+    Repeat a similar test to ensure smaller recv_size's work
+    """
+    # Set up basic server to respond
+    port = serv.get_first_port_from(13131)
+    p = ascii_letters.encode()
+    s = serv.Server(port, partial(client_handle, ds.WrappedConnection(None)._generate_final_obj(p)))  # Server simply sends encoded ascii
+
+    # Create and connect wrapped socket
+    conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    conn.connect(("localhost", port))  # connecting is a blocking only operation so it must be done first
+    wrap = ds.WrappedConnection(conn)
+    wrap.recv_size = 2
+
+    sleep(.01)  # Socket has some delay needed
+    s.shutdown()  # Now the tests can finish even when this test fails. We are assuming we make it here
+
+    assert not wrap.finished
+    wrap.parse_all()
+    # print(wrap.finished)
+    assert not wrap._partial
+    assert wrap.finished[0] == ascii_letters.encode()
 
 
 
