@@ -32,6 +32,22 @@ class Packet:
         self.value = value
         self.data = data
         self.extra = extra
+    
+    def __str__(self):
+        type = self.type
+        value = self.value
+        data = self.data
+        extra = self.extra
+        if isinstance(type, str) and len(type) > 100:
+            type = type[:100]
+        if isinstance(value, str) and len(value) > 100:
+            value = value[:100]
+        if isinstance(data, str) and len(data) > 100:
+            data = data[:100]
+        if isinstance(extra, str) and len(extra) > 100:
+            extra = extra[:100]
+        
+        return f"{type=}, {value=}, {data=}, {extra=}"
 
     def __getitem__(self, name: str):
         return self.storage[name.upper()]
@@ -108,12 +124,16 @@ class WrappedConnection:
 
     @life_check
     def load_awaited(self):
-        first = True
-        change = ""
-        while change or first:
-            change = self.conn.recv(self.recv_size)
-            self._partial += change
-            first = False
+        try:
+            first = True
+            change = ""
+            while change or first:
+                change = self.conn.recv(self.recv_size)
+                self._partial += change
+                first = False
+            self.alive = False  # fixme this may be a bug; I'm not sure how
+        except BlockingIOError:
+            pass
 
 
     @life_check
