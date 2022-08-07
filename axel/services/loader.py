@@ -1,7 +1,7 @@
 import os
 from typing import Union
 from pathlib import Path
-from .data_structures import FileToken, Client, LogEntry
+from .data_structures import *
 import json
 
 
@@ -68,18 +68,21 @@ def load_user_str(location: Union[str, Path]) -> str:
     return text
 
 
-def store_user_data(name: str, data: list[FileToken | Client | LogEntry]): # the actual type doesn't matter because they all have a dump method
-    if name in ("tokens", "gates", "directors", "logs"):
+def store_user_data(name: str, data: list[FileToken | FileIndex | Client | LogEntry]): # the actual type doesn't matter because they all have a dump method
+    if name in ("tokens", "gates", "directors", "logs", "storage_index"):
 
         prep = [a.dumps() for a in data]
         store_user_str(json.dumps(prep), name)
+    else:
+        raise ValueError(f"{name} is not a valid datafile name")
 
 
-def load_user_data(name: str) -> list[FileToken]:  # same type comment as before
-    if name in ("tokens", "gates", "directors", "logs"):
-        name_to_class = {"tokens": FileToken, "gates": Client, "directors": Client, "logs": LogEntry}
+def load_user_data(name: str) -> list[FileToken | FileIndex | Client | LogEntry]:  # same type comment as before
+    if name in ("tokens", "gates", "directors", "logs", "storage_index"):
+        name_to_class = {"tokens": FileToken, "gates": Client, "directors": Client, "logs": LogEntry, "storage_index": FileIndex}
         data = json.loads(load_user_str(name))
         return [name_to_class[name](a) for a in data]
-    print("nothing,", name)
+    else:
+        raise ValueError(f"{name} is not a valid datafile name")
 
 
