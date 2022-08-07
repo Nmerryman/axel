@@ -8,27 +8,24 @@ import json
 @dataclass
 class FileToken:
 
-    file_name: str
     hash_val: str
     auth_token: str
     valid_until: int
 
-    def __init__(self, file_name=None, hash_val=None, auth_token=None, valid_until=None):
-        if not file_name:
+    def __init__(self, hash_val=None, auth_token=None, valid_until=None):
+        if not hash_val:
             raise ValueError("No parameters given")
-        elif isinstance(file_name, dict):
-            self._load_dict(file_name)
-        elif isinstance(file_name, str) and not hash_val:
+        elif isinstance(hash_val, dict):
+            self._load_dict(hash_val)
+        elif isinstance(hash_val, str) and not auth_token:
             # Assume only json string is passed
-            self._load_dict(json.loads(file_name))
+            self._load_dict(json.loads(hash_val))
         else:
-            self.file_name = file_name
             self.hash_val = hash_val
             self.auth_token = auth_token
             self.valid_until = valid_until
 
     def _load_dict(self, data: dict):
-        self.file_name = data["file_name"]
         self.hash_val = data["hash_val"]
         self.auth_token = data["auth_token"]
         self.valid_until = data["valid_until"]
@@ -46,9 +43,9 @@ class FileIndex:
     file_name: str
     hash_val: str
     size: int
-    lost_access: int
+    last_access: int
 
-    def __init__(self, file_name=None, hash_val=None, size=None, lost_access=None):
+    def __init__(self, file_name=None, hash_val=None, size=None, last_access=None):
         if not file_name:
             raise ValueError("No parameters given")
         elif isinstance(file_name, dict):
@@ -60,13 +57,13 @@ class FileIndex:
             self.file_name = file_name
             self.hash_val = hash_val
             self.size = size
-            self.lost_access = lost_access
+            self.last_access = last_access
 
     def _load_dict(self, data: dict):
         self.file_name = data["file_name"]
         self.hash_val = data["hash_val"]
         self.size = data["size"]
-        self.lost_access = data["lost_access"]
+        self.last_access = data["last_access"]
 
     def _to_dict(self):
         return dataclasses.asdict(self)
