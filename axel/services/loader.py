@@ -46,9 +46,13 @@ def get_anchor():
     return text
 
 
-def get_anchor_dev():
+def get_anchor_dev(mod: Path = None):
     global DATA_PATH
-    DATA_PATH = Path("dev_data")
+    if mod:
+        DATA_PATH = mod / Path("dev_data")
+        DATA_PATH.resolve()
+    else:
+        DATA_PATH = Path("dev_data")
     return get_anchor()
 
 
