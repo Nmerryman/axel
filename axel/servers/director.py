@@ -4,11 +4,18 @@ from time import sleep
 import axel.services.net.data_structures as ds
 
 
-def client_handle(conn: socket.socket, ip: str, cid: int, proxy: callable):
-    sleep(1)
+def client_handle(conn: socket.socket, *args):
+
     w = ds.WrappedConnection(conn)
-    w.send_obj(ds.Packet("Hello World!"))
-    w.close()
+
+    while w.alive:
+        w.parse_all()  # check for new
+        while w.finished:
+            message: ds.Packet = w.finished.pop(0)
+            if message.data == "request content":
+                with open("test_content_source.png", 'rb') as f:
+                    data = f.read()
+                w.send_obj(data)
 
 
 def main():
