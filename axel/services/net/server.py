@@ -68,6 +68,7 @@ class Server:
                 break
 
             time.sleep(1)
+        self.final_call()
 
     def root_thread(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -129,6 +130,9 @@ class Server:
         if cid in self.clients.keys():
             conn = self.clients[cid][0]
             conn.sendall(Packet().generate())
+
+    def final_call(self):
+        log("Done shutting down")
 
 
 def get_first_port_from(port: int, limit: int = 50000) -> int:
