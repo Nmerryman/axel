@@ -7,3 +7,5 @@ axel/dev_data/user/logs
 venv
 *aoeu*
 *debug_testing.py
+axel/servers/test_content_source.png
+axel/servers/test_dest.png
