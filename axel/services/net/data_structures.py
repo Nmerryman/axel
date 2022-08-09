@@ -134,6 +134,8 @@ class WrappedConnection:
             self.alive = False  # fixme this may be a bug; I'm not sure how
         except BlockingIOError:
             pass
+        except ConnectionResetError:
+            self.alive = False
 
 
     @life_check
