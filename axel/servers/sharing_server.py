@@ -44,33 +44,53 @@ class ShareServ(serv.Server):
     @staticmethod
     def client_handle(conn: socket.socket, ip: str, cid: int, proxy: callable):
         wconn = ns.WrappedConnection(conn)
-        while wconn.alive and not wconn.finished:
+        while wconn.alive:
             wconn.parse_all()
 
             if wconn.alive and not wconn.finished:
                 time.sleep(1)  # We may not care about this, but its to lessen the load on the system
 
-            for a in wconn.finished:
+            while wconn.finished:
+                a = wconn.finished.pop(0)
                 if isinstance(a, ns.Packet):  # we only want packets in this filter
+                    s: ShareServ = proxy()
                     if a.type == "request":
-                        test_file = loader.DATA_PATH / "storage" / "test_content_source.png"
-                        with open(test_file, 'rb') as f:
-                            data = f.read()
-                        wconn.send_obj(data)
+                        # print(s.index_tokens, s.index_files, sep="\n")
+                        with lock:  # fixme I don't like this lock so early
+                            for num_b, b in enumerate(s.index_tokens):
+                                if b.auth_token == a.value:
+                                    for c in s.index_files:
+                                        if b.hash_val == c.hash_val:
+                                            name = c.file_name
+                                            test_file = loader.DATA_PATH / "storage" / name
+                                            with open(test_file, 'rb') as f:
+                                                data = f.read()
+                                            wconn.send_obj(data)
+                                            s.index_tokens.pop(num_b)
+                                            return  # Stop searching or doing anything after finding match
+                            wconn.send_obj(ns.Packet("status", "error", "No matching token found"))
                     elif a.type == "check files":
                         with lock:
-                            s: ShareServ = proxy()
                             s.index_files = explore_storage()
-                        wconn.send_obj(ns.Packet("status", "ok", len(s.index_files)))
+                        wconn.send_obj(ns.Packet("status", "ok", f"{len(s.index_files)} files"))
                     elif a.type == "add token":
+                        # print(wconn.finished)
                         with lock:
-                            s: ShareServ = proxy()
                             s.index_tokens.append(ds.FileToken(a.value))
-                        wconn.send_obj(ns.Packet("status", "ok", len(s.index_tokens)))
+                        wconn.send_obj(ns.Packet("status", "ok", f"{len(s.index_tokens)} tokens"))
+                    elif a.type == "ping":
+                        print(wconn.conn.getsockname())
+                        wconn.send_obj(ns.Packet("pong"))
                     else:
                         wconn.send_obj(ns.Packet("status", "error"))
                 else:
                     wconn.send_obj(ns.Packet("status", "error", "Only packets allowed"))
+        # wconn.close()
+
+    def final_call(self):
+        loader.store_user_data("storage_index", self.index_files)
+        loader.store_user_data("tokens", self.index_tokens)
+        print("Saved file data")
 
 
 def main():
