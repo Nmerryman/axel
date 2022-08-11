@@ -60,7 +60,7 @@ class ShareServ(serv.Server):
                             for num_b, b in enumerate(s.index_tokens):
                                 if b.auth_token == a.value:
                                     for c in s.index_files:
-                                        if b.hash_val == c.hash_val:
+                                        if b.hash_val == c.hash_val and b.valid_until > time.time():
                                             name = c.file_name
                                             test_file = loader.DATA_PATH / "storage" / name
                                             with open(test_file, 'rb') as f:
@@ -68,7 +68,7 @@ class ShareServ(serv.Server):
                                             wconn.send_obj(data)
                                             s.index_tokens.pop(num_b)
                                             return  # Stop searching or doing anything after finding match
-                            wconn.send_obj(ns.Packet("status", "error", "No matching token found"))
+                            wconn.send_obj(ns.Packet("status", "error", "No matching token found", a.value))
                     elif a.type == "check files":
                         with lock:
                             s.index_files = explore_storage()
@@ -77,9 +77,12 @@ class ShareServ(serv.Server):
                         # print(wconn.finished)
                         with lock:
                             s.index_tokens.append(ds.FileToken(a.value))
-                        wconn.send_obj(ns.Packet("status", "ok", f"{len(s.index_tokens)} tokens"))
+                        try:
+                            wconn.send_obj(ns.Packet("status", "ok", f"{len(s.index_tokens)} tokens"))
+                        except ns.ConnectionClosed:
+                            pass
                     elif a.type == "ping":
-                        print(wconn.conn.getsockname())
+                        # print(wconn.conn.getsockname())
                         wconn.send_obj(ns.Packet("pong"))
                     else:
                         wconn.send_obj(ns.Packet("status", "error"))
@@ -101,7 +104,15 @@ def main():
         loader.store_user_data("storage_index", cached_files)
     cached_tokens = loader.load_user_data("tokens")
 
-    port = serv.get_first_port_from(13131)
+    fs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Open outgoing socket first
+    fs.connect(("127.0.0.1", 13131))
+    wfs = ns.WrappedConnection(fs)
+    wfs.send_obj(ns.Packet("register", "sharing server"))
+    while not wfs.finished:
+        wfs.parse_all()
+    print("registering", wfs.finished[0])
+
+    port = fs.getsockname()[1]
     s = ShareServ(port, cached_files, cached_tokens)
     print(port)
     s.mainloop()
