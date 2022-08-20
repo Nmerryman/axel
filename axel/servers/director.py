@@ -29,13 +29,17 @@ def client_handle(conn: socket.socket, ip: str, cid: int, proxy: callable):
             if isinstance(message, ds.Packet):
                 if message.type == "register" and message.value == "sharing server":  # We are just checking for proper packets
                     client = Client(*w.conn.getpeername())
+                    print("peer", w.conn.getpeername())
+                    print("sock", w.conn.getsockname())
+                    print("ip", ip)
                     if client not in s.sharing_servers:
-                        print(f"added {client=}")
+                        print(f"REPLACED {client=}")
                         with lock:
+                            s.sharing_servers.clear()
                             s.sharing_servers.append(client)
                         w.send_obj(ds.Packet("status", "ok"))
                     else:
-                        w.send_obj(ds.Packet("status", "error"))
+                        w.send_obj(ds.Packet("status", "error", "No clients found"))
                 elif message.type == "request" and message.value == "sharing server" and s.sharing_servers:
                     w.send_obj(ds.Packet("server info", s.sharing_servers[0].dumps()))
                 elif message.type == "request" and message.value == "content" and s.sharing_servers:
@@ -46,7 +50,7 @@ def client_handle(conn: socket.socket, ip: str, cid: int, proxy: callable):
                     w.send_obj(ds.Packet("content source", Client(host_s.ip, host_s.port).dumps(), token))
                 else:
                     print(message, s.sharing_servers)
-                    w.send_obj(ds.Packet("status", "error"))
+                    w.send_obj(ds.Packet("status", "error", "No matching type"))
 
 
 class DServer(serv.Server):

@@ -85,7 +85,7 @@ class ShareServ(serv.Server):
                         # print(wconn.conn.getsockname())
                         wconn.send_obj(ns.Packet("pong"))
                     else:
-                        wconn.send_obj(ns.Packet("status", "error"))
+                        wconn.send_obj(ns.Packet("status", "error", "no request type"))
                 else:
                     wconn.send_obj(ns.Packet("status", "error", "Only packets allowed"))
         # wconn.close()
