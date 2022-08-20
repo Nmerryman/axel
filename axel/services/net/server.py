@@ -12,10 +12,11 @@ class Server:
     todo Consider any Packets moving around internally as always being command to free up another field
     todo Provide better ways to share data between clients
     """
-    def __init__(self, root_port: int, incoming_handler):
+    def __init__(self, root_port: int, incoming_handler, bind_ip: str = "127.0.0.1"):
         log("starting")
         self.alive = True
         self.root_port = root_port
+        self.bind_ip = bind_ip
         self.used_ports = [root_port]
         self.clients = {}  # {id: (conn, ip)}
         self.running_threads = []
@@ -72,7 +73,7 @@ class Server:
 
     def root_thread(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(("127.0.0.1", self.root_port))
+        s.bind((self.bind_ip, self.root_port))
         s.listen()
         while self.alive:
             conn, ip = s.accept()
